@@ -3,6 +3,13 @@ import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import numpy as np
 import altair as alt
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.linear_model import Ridge
+
 
 @st.cache_data
 def load_data(csv_file):
@@ -117,6 +124,47 @@ def main():
         st.altair_chart(chart2, use_container_width=True)
     else:
         st.warning("Not enough numeric columns to compute correlations.")
+
+    # ──────────────── Component 4: Train Regression Model ────────────────
+    st.header("4. Train Regression Model")
+
+    st.subheader("Select Features to Train On")
+    available_features = [col for col in processed_df.columns if col != target]
+    selected_features = st.multiselect("Choose features:", available_features)
+
+    if selected_features:
+        X = processed_df[selected_features]
+        y = processed_df[target]
+
+        numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
+        categorical_cols = X.select_dtypes(include=['object', 'category']).columns.tolist()
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', SimpleImputer(strategy='mean'), numerical_cols),
+                ('cat', Pipeline(steps=[
+                    ('imputer', SimpleImputer(strategy='most_frequent')),
+                    ('encoder', OneHotEncoder(handle_unknown='ignore'))
+                ]), categorical_cols)
+            ]
+        )
+
+        model = Pipeline(steps=[
+            ('preprocessing', preprocessor),
+            ('regressor', Ridge())
+        ])
+
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        model.fit(X_train, y_train)
+        r2_score = model.score(X_test, y_test)
+
+        # Save to session for use in prediction
+        st.session_state['model'] = model
+        st.session_state['selected_features'] = selected_features
+
+        st.success(f"Model trained successfully. R² score on test set: **{r2_score:.3f}**")
+    else:
+        st.warning("Please select at least one feature to train the model.")
 
     # ──────────────── Component 5: Prediction ────────────────
     st.header("5. Predict Target Value")
