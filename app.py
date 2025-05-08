@@ -10,7 +10,6 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.linear_model import Ridge
 
-
 @st.cache_data
 def load_data(csv_file):
     return pd.read_csv(csv_file)
@@ -60,6 +59,7 @@ def main():
         st.error("No numeric columns found for target selection.")
         return
 
+    # 2: Target Variable
     st.header("2. Select Target Variable")
     target = st.selectbox("Target variable (numeric)", numeric_cols)
     st.write(f"**{target}** selected as target.")
@@ -72,7 +72,7 @@ def main():
 
     st.success("Data preprocessing complete! Component 1 is ready for downstream steps.")
 
-    # ──────────────── Component 2: Bar Charts ────────────────
+    # 3: Bar Charts
     st.header("3. Bar Charts")
 
     raw_df = st.session_state['raw_df']
@@ -125,7 +125,7 @@ def main():
     else:
         st.warning("Not enough numeric columns to compute correlations.")
 
-    # ──────────────── Component 4: Train Regression Model ────────────────
+    # 4: Train Regression Model
     st.header("4. Train Regression Model")
 
     st.subheader("Select Features to Train On")
@@ -158,7 +158,6 @@ def main():
         model.fit(X_train, y_train)
         r2_score = model.score(X_test, y_test)
 
-        # Save to session for use in prediction
         st.session_state['model'] = model
         st.session_state['selected_features'] = selected_features
 
@@ -166,7 +165,7 @@ def main():
     else:
         st.warning("Please select at least one feature to train the model.")
 
-    # ──────────────── Component 5: Prediction ────────────────
+    # 5: Prediction
     st.header("5. Predict Target Value")
 
     if 'model' not in st.session_state or 'selected_features' not in st.session_state:
@@ -183,7 +182,6 @@ def main():
                 if len(input_list) != len(st.session_state['selected_features']):
                     st.error(f"Expected {len(st.session_state['selected_features'])} values, but got {len(input_list)}.")
                 else:
-                    # Create DataFrame for input
                     input_df = pd.DataFrame([input_list], columns=st.session_state['selected_features'])
                     prediction = st.session_state['model'].predict(input_df)[0]
                     st.success(f"Predicted target value: **{prediction:.2f}**")
