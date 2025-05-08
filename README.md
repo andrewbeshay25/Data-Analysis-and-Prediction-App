@@ -57,7 +57,7 @@ This project is a Streamlit-based web application that allows users to upload da
 
 ## 🌐 Deployment
 
-The app is deployed on Streamlit Cloud and accessible at: 👉 [Your Deployment Link Here]
+The app is deployed on Streamlit Cloud and accessible at: 👉 [[Click Here](https://datapredictionapp-group3.streamlit.app/)]
   
 
 ## 🧑‍🤝‍🧑 Team Members
